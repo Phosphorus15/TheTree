@@ -14,6 +14,8 @@ public class TreeManager {
 
     private static Map<String, String> aliases = new TreeMap<>();
 
+    public static final int VERSION = 0x101; // [primary][secondary][build]
+
     public static void registerAliases(String name, String... alias) {
         Arrays.stream(alias).filter(Objects::nonNull).map(String::toLowerCase)
                 .forEach(s -> aliases.put(s, name.toLowerCase()));

@@ -32,4 +32,5 @@ public abstract class TreeProcessor implements TreeParser, TreeSerializer {
     public TreeRoot parse(InputStream stream) {
         return parse(new InputStreamReader(stream));
     }
+
 }

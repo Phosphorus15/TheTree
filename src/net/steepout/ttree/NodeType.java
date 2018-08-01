@@ -8,6 +8,8 @@ public enum NodeType {
 
     TYPE_INT32, TYPE_INT64, TYPE_FLOAT,
 
+    TYPE_BIG_INTEGER, TYPE_BIG_DECIMAL, TYPE_ANNOTATIONS(false),
+
     TYPE_DOUBLE_FLOAT, TYPE_IDENTIFIER(false), TYPE_OTHER(false), TYPE_OTHER_DATA(false);
 
     public boolean isDataType() {
