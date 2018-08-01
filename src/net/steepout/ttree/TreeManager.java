@@ -77,13 +77,14 @@ public class TreeManager {
         return findParser("arbre");
     }
 
-    private static <T extends EditableNode> T emptyNodeByClass(Class<T> tClass) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    public static <T extends EditableNode> T emptyNodeByClass(Class<T> tClass) throws IllegalAccessException, InvocationTargetException, InstantiationException {
         try {
             return tClass.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
-            Optional<Constructor<?>> optional = Arrays.stream(tClass.getConstructors()).findAny();
+            Optional<Constructor<?>> optional = Arrays.stream(tClass.getConstructors())
+                    .filter(constructor -> constructor.getParameterCount() == 1).findAny();
             if (optional.isPresent()) {
-                return (T) optional.get().newInstance((Object) null);
+                return (T) optional.get().newInstance(new Object[]{null});
             } else throw new RuntimeException("Could not find applicable constructor for " + tClass.getName());
         }
     }

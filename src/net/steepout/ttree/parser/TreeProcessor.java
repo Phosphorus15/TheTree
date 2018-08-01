@@ -1,10 +1,5 @@
 package net.steepout.ttree.parser;
 
-import net.steepout.ttree.TreeRoot;
-
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
 public abstract class TreeProcessor implements TreeParser, TreeSerializer {
 
     private String name;
@@ -26,11 +21,6 @@ public abstract class TreeProcessor implements TreeParser, TreeSerializer {
     @Override
     public TreeSerializer getSerializer() {
         return this;
-    }
-
-    @Override
-    public TreeRoot parse(InputStream stream) {
-        return parse(new InputStreamReader(stream));
     }
 
 }

@@ -23,4 +23,10 @@ public class BeautifiedPrinter {
         System.out.println();
     }
 
+    public static String quotedString(String str) {
+        str = str.replace("\n", "\\n")
+                .replace("\r", "\\r").replace("\"", "\\\"");
+        return "\"" + str + "\"";
+    }
+
 }

@@ -1,26 +1,25 @@
 package net.steepout.ttree.parser.l_arbre;
 
-import net.steepout.ttree.NodeType;
-import net.steepout.ttree.TreeManager;
-import net.steepout.ttree.TreeNode;
-import net.steepout.ttree.TreeRoot;
+import net.steepout.ttree.*;
+import net.steepout.ttree.data.ListNode;
 import net.steepout.ttree.parser.TreeProcessor;
 import net.steepout.ttree.utils.Bits;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Reader;
+import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * The Arbre is a specially designed structure for serializing data (Though very simple)
  * <p>
  * Header Structure : # -> () Means necessary , [] Means Optional
- * (AB1EFFFF) Magic Number (int32) File version (int64) Unix timestamp [OPH] [MD5 Hash] digest
+ * (AB1EFFFF) Magic Number (int32) File version (int64) Unix timestamp [OPH] [MD5 Hash] digest\
  */
 
 public class ArbreProcessor extends TreeProcessor {
@@ -39,7 +38,25 @@ public class ArbreProcessor extends TreeProcessor {
     static final int EOL = 0xb; // End of List
     static final int MAGIC_NUMBER = 0xAB1EFFFF;
 
+    public boolean isVerifyDigest() {
+        return verifyDigest;
+    }
+
+    public void setVerifyDigest(boolean verifyDigest) {
+        this.verifyDigest = verifyDigest;
+    }
+
+    public boolean isCompress() {
+        return compress;
+    }
+
+    public void setCompress(boolean compress) {
+        this.compress = compress;
+    }
+
     boolean verifyDigest = true;
+
+    boolean compress = true;
 
     static {
         TreeManager.registerProcessor(new ArbreProcessor());
@@ -51,8 +68,20 @@ public class ArbreProcessor extends TreeProcessor {
     }
 
     @Override
-    public TreeRoot parse(Reader reader) {
-        return null;
+    public TreeRoot parse(InputStream stream) throws IOException {
+        if (compress) {
+            parse(new GZIPInputStream(stream));
+        } else {
+            ByteArrayOutputStream cache = new ByteArrayOutputStream();
+            int i = 0;
+            while ((i = stream.read()) != -1)
+                cache.write(i);
+            ByteBuffer buffer = ByteBuffer.wrap(cache.toByteArray());
+            cache.close();
+            if (buffer.limit() <= 8 || buffer.getInt() != MAGIC_NUMBER)
+                throw new InvalidObjectException("Not a valid lar file (try switch compress mode)");
+        }
+        return null; // TODO stuffs
     }
 
     @Override
@@ -88,6 +117,17 @@ public class ArbreProcessor extends TreeProcessor {
         ByteBuffer result = ByteBuffer.allocate(stream.size() + header.size());
         result.put(header.toByteArray());
         result.put(stream.toByteArray());
+        if (compress) {
+            try {
+                ByteArrayOutputStream zipped = new ByteArrayOutputStream();
+                GZIPOutputStream outputStream = new GZIPOutputStream(zipped);
+                outputStream.write(result.array());
+                outputStream.close();
+                return ByteBuffer.wrap(zipped.toByteArray());
+            } catch (IOException e) {
+                throw new RuntimeException("Compression failed, try cancel compressing", e);
+            }
+        }
         return result;
     }
 
@@ -137,7 +177,20 @@ public class ArbreProcessor extends TreeProcessor {
                         throw new IllegalArgumentException("Unidentified data object " + node.getClass().getName());
                 }
         } else if (node.getType() == NodeType.TYPE_DATA_LIST) {
-
+            stream.write(SOL);
+            stream.write(Bits.wrapString(node.getName()));
+            stream.write(NML);
+            stream.write(Bits.wrapInt(((List<?>) node.getValue()).size()));
+            try {
+                EditableNode n = TreeManager.emptyNodeByClass(((ListNode) node).getListType().getDefaultInstance());
+                for (Object obj : (List<?>) node.getValue()) {
+                    n.setValue(obj);
+                    writeNode(n, stream);
+                }
+            } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
+                throw new RuntimeException(e);
+            }
+            stream.write(EOL);
         } else {
             // FIXME further process
         }

@@ -11,7 +11,7 @@ public abstract class EditableNode extends TreeNode {
 
     abstract void setName(String name);
 
-    abstract void setValue(Object object);
+    public abstract void setValue(Object object);
 
     public TreeNode asUneditable() {
         return new ProtectedNode(this);

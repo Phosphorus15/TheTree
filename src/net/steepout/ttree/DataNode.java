@@ -1,5 +1,7 @@
 package net.steepout.ttree;
 
+import net.steepout.ttree.utils.BeautifiedPrinter;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,4 +32,16 @@ public abstract class DataNode<T> extends TreeRoot {
     public T getValue() {
         return value;
     }
+
+    public String showValue() {
+        return value.toString();
+    }
+
+    @Override
+    public String toString() {
+        String result = "";
+        if (getName() != null) result += BeautifiedPrinter.quotedString(getName()) + ": ";
+        return result + showValue();
+    }
+
 }

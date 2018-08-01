@@ -6,7 +6,7 @@ import net.steepout.ttree.NodeType;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ListNode extends DataNode<List<?>> {
+public class ListNode extends DataNode<List<Object>> {
 
     public ListNode(String caption, NodeType listType) {
         super(caption, null);

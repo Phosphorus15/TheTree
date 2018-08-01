@@ -4,7 +4,7 @@ import net.steepout.ttree.data.*;
 
 public enum NodeType {
 
-    TYPE_HEADER(false, TreeRoot.class), TYPE_DATA_LIST(ListNode.class),
+    TYPE_HEADER(false, TreeRoot.class), TYPE_DATA_LIST(false, ListNode.class),
 
     TYPE_STRING(StringNode.class), TYPE_BYTE(ByteNode.class), TYPE_INT16(ShortNode.class),
 
@@ -27,6 +27,14 @@ public enum NodeType {
     }
 
     boolean dataType;
+
+    public Class<? extends EditableNode> getDefaultInstance() {
+        return defaultInstance;
+    }
+
+    public void setDefaultInstance(Class<? extends EditableNode> defaultInstance) {
+        this.defaultInstance = defaultInstance;
+    }
 
     Class<? extends EditableNode> defaultInstance;
 

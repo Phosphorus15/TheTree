@@ -2,8 +2,8 @@ package net.steepout.ttree.parser;
 
 import net.steepout.ttree.TreeRoot;
 
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
 
 public interface TreeParser {
 
@@ -11,8 +11,6 @@ public interface TreeParser {
 
     TreeSerializer getSerializer();
 
-    TreeRoot parse(Reader reader);
-
-    TreeRoot parse(InputStream stream);
+    TreeRoot parse(InputStream stream) throws IOException;
 
 }

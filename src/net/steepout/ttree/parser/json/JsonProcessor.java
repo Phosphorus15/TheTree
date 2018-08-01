@@ -4,7 +4,7 @@ import net.steepout.ttree.TreeManager;
 import net.steepout.ttree.TreeRoot;
 import net.steepout.ttree.parser.TreeProcessor;
 
-import java.io.Reader;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 public class JsonProcessor extends TreeProcessor {
@@ -19,12 +19,12 @@ public class JsonProcessor extends TreeProcessor {
     }
 
     @Override
-    public TreeRoot parse(Reader reader) {
+    public ByteBuffer serialize(TreeRoot root) {
         return null;
     }
 
     @Override
-    public ByteBuffer serialize(TreeRoot root) {
+    public TreeRoot parse(InputStream stream) {
         return null;
     }
 }
