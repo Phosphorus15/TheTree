@@ -4,6 +4,8 @@ import net.steepout.ttree.parser.TreeParser;
 import net.steepout.ttree.parser.TreeProcessor;
 import net.steepout.ttree.parser.TreeSerializer;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public class TreeManager {
@@ -65,6 +67,25 @@ public class TreeManager {
         set.addAll(parsers.keySet());
         set.addAll(serializers.keySet());
         return set;
+    }
+
+    public static TreeSerializer defaultSerializer() {
+        return findSerializer("arbre");
+    }
+
+    public static TreeParser defaultParser() {
+        return findParser("arbre");
+    }
+
+    private static <T extends EditableNode> T emptyNodeByClass(Class<T> tClass) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+        try {
+            return tClass.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            Optional<Constructor<?>> optional = Arrays.stream(tClass.getConstructors()).findAny();
+            if (optional.isPresent()) {
+                return (T) optional.get().newInstance((Object) null);
+            } else throw new RuntimeException("Could not find applicable constructor for " + tClass.getName());
+        }
     }
 
 }

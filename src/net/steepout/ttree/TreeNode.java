@@ -4,13 +4,13 @@ import java.util.List;
 
 public abstract class TreeNode {
 
-    abstract String getName();
+    public abstract String getName();
 
-    abstract Object getValue();
+    public abstract Object getValue();
 
-    abstract NodeType getType();
+    public abstract NodeType getType();
 
-    abstract List<? extends TreeNode> subNodes();
+    public abstract List<? extends TreeNode> subNodes();
 
     public int size() {
         return subNodes().size();

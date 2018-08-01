@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 public abstract class EditableNode extends TreeNode {
 
     @Override
-    abstract List<EditableNode> subNodes();
+    public abstract List<EditableNode> subNodes();
 
     abstract void setName(String name);
 
@@ -26,17 +26,17 @@ public abstract class EditableNode extends TreeNode {
         }
 
         @Override
-        String getName() {
+        public String getName() {
             return node.getName();
         }
 
         @Override
-        Object getValue() {
+        public Object getValue() {
             return node.getValue();
         }
 
         @Override
-        NodeType getType() {
+        public NodeType getType() {
             return node.getType();
         }
 
@@ -45,7 +45,7 @@ public abstract class EditableNode extends TreeNode {
         }
 
         @Override
-        List<TreeNode> subNodes() {
+        public List<TreeNode> subNodes() {
             return Collections.unmodifiableList(node.subNodes().stream()
                     .map(this::asProtectedNode).collect(Collectors.toList()));
         }

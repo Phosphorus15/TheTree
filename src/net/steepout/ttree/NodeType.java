@@ -1,16 +1,22 @@
 package net.steepout.ttree;
 
+import net.steepout.ttree.data.*;
+
 public enum NodeType {
 
-    TYPE_HEADER(false), TYPE_DATA_LIST(false),
+    TYPE_HEADER(false, TreeRoot.class), TYPE_DATA_LIST(ListNode.class),
 
-    TYPE_STRING, TYPE_BYTE, TYPE_INT16,
+    TYPE_STRING(StringNode.class), TYPE_BYTE(ByteNode.class), TYPE_INT16(ShortNode.class),
 
-    TYPE_INT32, TYPE_INT64, TYPE_FLOAT,
+    TYPE_INT32(IntNode.class), TYPE_INT64(LongNode.class), TYPE_FLOAT(FloatNode.class), TYPE_BLOB(BlobNode.class),
 
-    TYPE_BIG_INTEGER, TYPE_BIG_DECIMAL, TYPE_ANNOTATIONS(false),
+    TYPE_BIG_INTEGER(BigIntegerNode.class), TYPE_BIG_DECIMAL(BigDecimalNode.class),
 
-    TYPE_DOUBLE_FLOAT, TYPE_IDENTIFIER(false), TYPE_OTHER(false), TYPE_OTHER_DATA(false);
+    TYPE_ANNOTATIONS(AnnotationsNode.class),
+
+    TYPE_DOUBLE_FLOAT(DoubleNode.class), TYPE_IDENTIFIER(IdentifierNode.class),
+
+    TYPE_OTHER(false), TYPE_OTHER_DATA(false);
 
     public boolean isDataType() {
         return dataType;
@@ -22,12 +28,19 @@ public enum NodeType {
 
     boolean dataType;
 
-    NodeType(boolean isData) {
+    Class<? extends EditableNode> defaultInstance;
+
+    NodeType(boolean isData, Class<? extends EditableNode> defaultInstance) {
         dataType = isData;
+        this.defaultInstance = defaultInstance;
     }
 
-    NodeType() {
-        this(true);
+    NodeType(boolean isData) {
+        this(isData, null);
+    }
+
+    NodeType(Class<? extends EditableNode> defaultInstance) {
+        this(true, defaultInstance);
     }
 
 }
