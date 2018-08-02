@@ -6,6 +6,7 @@ import net.steepout.ttree.parser.TreeProcessor;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 public class JsonProcessor extends TreeProcessor {
 
@@ -20,7 +21,7 @@ public class JsonProcessor extends TreeProcessor {
 
     @Override
     public ByteBuffer serialize(TreeRoot root) {
-        return null;
+        return ByteBuffer.wrap(root.toString().getBytes(StandardCharsets.UTF_8));
     }
 
     @Override

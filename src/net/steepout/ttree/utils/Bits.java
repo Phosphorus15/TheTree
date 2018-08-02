@@ -4,6 +4,7 @@ import net.steepout.ttree.parser.l_arbre.ArbreProcessor;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 public class Bits {
@@ -147,6 +148,15 @@ public class Bits {
             e.printStackTrace();
         }
         return temp.toByteArray();
+    }
+
+    public static String getEffectiveString(ByteBuffer buffer) {
+        if (buffer.get() == ArbreProcessor.HVV) {
+            buffer.get(); // skip NML label (as default)
+            byte[] data = new byte[buffer.getInt()];
+            buffer.get(data);
+            return new String(data, StandardCharsets.UTF_8);
+        } else return null;
     }
 
 }
