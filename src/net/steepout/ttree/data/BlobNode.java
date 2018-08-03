@@ -2,6 +2,9 @@ package net.steepout.ttree.data;
 
 import net.steepout.ttree.DataNode;
 import net.steepout.ttree.NodeType;
+import net.steepout.ttree.utils.BeautifiedPrinter;
+
+import java.util.Base64;
 
 public class BlobNode extends DataNode<byte[]> {
 
@@ -11,6 +14,11 @@ public class BlobNode extends DataNode<byte[]> {
 
     public BlobNode(byte[] value) {
         super(value);
+    }
+
+    @Override
+    public String showValue() {
+        return BeautifiedPrinter.quotedString("Blob-" + Base64.getEncoder().encodeToString(value));
     }
 
     @Override

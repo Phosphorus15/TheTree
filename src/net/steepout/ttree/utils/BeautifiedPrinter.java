@@ -2,6 +2,8 @@ package net.steepout.ttree.utils;
 
 public class BeautifiedPrinter {
 
+    private static final String punctuations = "~`!@#$%^&*()_+-=[]{}\\|;:'\"<>,./?";
+
     public static void printBytes(byte[] bytes) {
         byte[] buffer = new byte[16];
         for (int i = 0, reline = 0; i < bytes.length; i++) {
@@ -13,8 +15,12 @@ public class BeautifiedPrinter {
                 reline = 0;
                 System.out.flush();
                 System.out.print(" | ");
-                for (int j = 0; j < buffer.length; j++) {
-                    if (Character.isLetter(buffer[j])) System.out.print((char) buffer[j]);
+                for (byte aBuffer : buffer) {
+                    if (Character.isLetter(aBuffer)
+                            || Character.isDigit(aBuffer)
+                            || punctuations.indexOf(aBuffer) != -1
+                            || Character.isSpaceChar(aBuffer))
+                        System.out.print((char) aBuffer);
                     else System.out.print("?");
                 }
                 System.out.println();

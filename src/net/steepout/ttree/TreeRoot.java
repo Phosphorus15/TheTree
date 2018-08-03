@@ -4,6 +4,7 @@ import net.steepout.ttree.utils.BeautifiedPrinter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * The root of a tree (or a tree's section)
@@ -55,9 +56,32 @@ public class TreeRoot extends EditableNode {
 
     }
 
-    private String toString(int level) {
+    private String strictProceed(TreeNode node, boolean strict, boolean forceId, boolean forceList, int level) {
+        //System.out.println(getName() + " " + strict);
+        //Arrays.stream(Thread.currentThread().getStackTrace()).filter(stackTraceElement -> stackTraceElement.getClassName().contains("net"))
+        //        .forEach(System.out::println);
+        String string = !(node.getType() == NodeType.TYPE_DATA_LIST || node.getType() == NodeType.TYPE_HEADER)
+                ? node.toString()
+                : ((TreeRoot) node).toString(level + 1, strict);
+        //System.out.println(node.getType() + " " + strict + " " + forceId + " " + forceList);
+        if (!strict) return string;
+        if (forceList) {
+            if (node.getName() != null)
+                return string.substring(string.indexOf(':') + 1);
+        } else if (forceId) {
+            //System.out.println("fid " + node.getType());
+            if (node.getName() == null)
+                return BeautifiedPrinter.quotedString(UUID.randomUUID().toString()) + ": " + string;
+        }
+        return string;
+    }
+
+    public String toString(int level, boolean strictJson) {
+        //System.out.println(getName() + " " + strictJson);
         StringBuilder result = new StringBuilder();
-        if (name != null) result = new StringBuilder(BeautifiedPrinter.quotedString(name) + ": ");
+        if (name != null && !(level == 1 && strictJson))
+            result = new StringBuilder(BeautifiedPrinter.quotedString(name) + ": ");
+        boolean forceId = (strictJson && getType() != NodeType.TYPE_DATA_LIST);
         StringBuilder tabs = new StringBuilder();
         for (int i = 0; i < level; i++) tabs.append('\t');
         if (getType() == NodeType.TYPE_DATA_LIST) result.append("[\n");
@@ -67,14 +91,14 @@ public class TreeRoot extends EditableNode {
             result.deleteCharAt(result.length() - 1);
             tabs = new StringBuilder();
             for (TreeNode node : subNodes) {
-                result.append(node.toString()).append(", ");
+                result.append(strictProceed(node, strictJson, forceId
+                        , getType() == NodeType.TYPE_DATA_LIST, level)).append(", ");
             }
         } else
             for (TreeNode node : subNodes) {
                 result.append(tabs)
-                        .append((!(node.getType().isDataType()))
-                                ? (((TreeRoot) node).toString(level + 1))
-                                : node.toString()).append(", \n");
+                        .append((strictProceed(node, strictJson, forceId
+                                , getType() == NodeType.TYPE_DATA_LIST, level))).append(", \n");
             }
         if (tabs.length() != 0) tabs = tabs.deleteCharAt(tabs.length() - 1);
         if (result.indexOf(",") != -1) {
@@ -89,7 +113,7 @@ public class TreeRoot extends EditableNode {
 
     @Override
     public String toString() {
-        return toString(1);
+        return toString(1, false);
     }
 
 }

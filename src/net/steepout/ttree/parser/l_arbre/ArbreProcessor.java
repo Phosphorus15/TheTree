@@ -73,12 +73,12 @@ public class ArbreProcessor extends TreeProcessor {
     }
 
     @Override
-    public LARAttributiveRoot parse(InputStream stream) throws IOException {
+    public LARAttributiveRootNode parse(InputStream stream) throws IOException {
         if (compress) return parseUncompressed(new GZIPInputStream(stream));
         else return parseUncompressed(stream);
     }
 
-    public LARAttributiveRoot parseUncompressed(InputStream stream) throws IOException {
+    public LARAttributiveRootNode parseUncompressed(InputStream stream) throws IOException {
         ByteArrayOutputStream cache = new ByteArrayOutputStream();
         int i = 0;
         while ((i = stream.read()) != -1)
@@ -88,7 +88,7 @@ public class ArbreProcessor extends TreeProcessor {
         cache.close();
         if (buffer.limit() <= 8 || buffer.getInt() != MAGIC_NUMBER)
             raiseInvalid();
-        LARAttributiveRoot root = new LARAttributiveRoot(null);
+        LARAttributiveRootNode root = new LARAttributiveRootNode(null);
         root.setCreatedVersion(buffer.getInt());
         root.setTimeStamp(buffer.getLong());
         byte[] optionalHash = null;

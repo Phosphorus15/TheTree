@@ -4,9 +4,9 @@ import net.steepout.ttree.TreeRoot;
 
 import java.util.Date;
 
-public class LARAttributiveRoot extends TreeRoot {
+public class LARAttributiveRootNode extends TreeRoot {
 
-    public LARAttributiveRoot(String caption) {
+    LARAttributiveRootNode(String caption) {
         super(caption);
     }
 
