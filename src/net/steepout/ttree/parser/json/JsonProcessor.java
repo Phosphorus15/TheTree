@@ -1,11 +1,12 @@
 package net.steepout.ttree.parser.json;
 
+import net.steepout.ttree.EditableNode;
 import net.steepout.ttree.TreeManager;
 import net.steepout.ttree.TreeRoot;
 import net.steepout.ttree.parser.TreeProcessor;
+import net.steepout.ttree.utils.ParserUtils;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
@@ -38,9 +39,42 @@ public class JsonProcessor extends TreeProcessor {
     }
 
     @Override
-    public TreeRoot parse(InputStream stream) {
-        InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
-        JSONRootNode root = new JSONRootNode();
+    public TreeRoot parse(InputStream stream) throws IOException {
+        Reader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
+        JsonRootNode root = new JsonRootNode();
+        int ch = ParserUtils.readUntilValid(reader);
+        if (ch != '{') raiseInvalid();
+        parseJson(root, reader);
         return root;
+    }
+
+    public void parseJson(EditableNode node, Reader reader) throws IOException {
+        String key = "";
+        String raw = "";
+        boolean fullFilled = false;
+        while (true) {
+            int ch = ParserUtils.readUntilValid(reader);
+            if (!key.isEmpty()) {
+                if (ch == ':') {
+                    fullFilled = true;
+                } else if (fullFilled) {
+                    ch = ParserUtils.readUntilValid(reader);
+                    if (ch == '{') {
+                        TreeRoot root = new TreeRoot(key);
+                        node.subNodes().add(root);
+                        parseJson(root, reader);
+                    } else if (ch == '[') {
+
+                    } else if (ch == '\'' || ch == '"') {
+
+                    } else {
+                        raw = ch + ParserUtils.readUntilEliminate(reader); // mark reset
+                    }
+                } else raiseInvalid();
+            } else if (ch == '\'' || ch == '"') {
+                key = ParserUtils.readEffectiveString(reader, ch);
+                fullFilled = true;
+            } else raiseInvalid();
+        }
     }
 }

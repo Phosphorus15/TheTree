@@ -2,9 +2,9 @@ package net.steepout.ttree.parser.json;
 
 import net.steepout.ttree.TreeRoot;
 
-public class JSONRootNode extends TreeRoot {
+public class JsonRootNode extends TreeRoot {
 
-    JSONRootNode() {
+    JsonRootNode() {
         super();
     }
 

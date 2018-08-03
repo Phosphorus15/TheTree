@@ -178,7 +178,8 @@ public class ArbreProcessor extends TreeProcessor {
         }
     }
 
-    private void raiseInvalid() throws InvalidObjectException {
+    @Override
+    protected void raiseInvalid() throws InvalidObjectException {
         throw new InvalidObjectException("Not a valid lar file (try switch compress mode)");
     }
 
