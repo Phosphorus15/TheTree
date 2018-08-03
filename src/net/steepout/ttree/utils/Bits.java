@@ -125,11 +125,41 @@ public class Bits {
     public static byte[] wrapString(String string) {
         if (string == null) return new byte[]{ArbreProcessor.NOV};
         ByteArrayOutputStream temp = new ByteArrayOutputStream();
+        byte[] byt = string.getBytes(StandardCharsets.UTF_8);
         temp.write(ArbreProcessor.HVV);
-        temp.write(ArbreProcessor.NML);
         try {
-            temp.write(wrapInt(string.length()));
+            if (byt.length <= Short.MAX_VALUE) {
+                temp.write(ArbreProcessor.MNL);
+                temp.write(wrapShort((short) byt.length));
+            } else {
+                temp.write(ArbreProcessor.NML);
+                temp.write(wrapInt(byt.length));
+            }
             temp.write(string.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return temp.toByteArray();
+    }
+
+    public static byte[] getNonEmptyBlob(ByteBuffer buffer) {
+        int len = (buffer.get() == ArbreProcessor.MNL) ? buffer.getShort() : buffer.getInt();
+        byte[] data = new byte[len];
+        buffer.get(data);
+        return data;
+    }
+
+    public static byte[] wrapNonEmptyBlob(byte[] byt) {
+        ByteArrayOutputStream temp = new ByteArrayOutputStream();
+        try {
+            if (byt.length <= Short.MAX_VALUE) {
+                temp.write(ArbreProcessor.MNL);
+                temp.write(wrapShort((short) byt.length));
+            } else {
+                temp.write(ArbreProcessor.NML);
+                temp.write(wrapInt(byt.length));
+            }
+            temp.write(byt);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -140,9 +170,14 @@ public class Bits {
         if (byt == null) return new byte[]{ArbreProcessor.NOV};
         ByteArrayOutputStream temp = new ByteArrayOutputStream();
         temp.write(ArbreProcessor.HVV);
-        temp.write(ArbreProcessor.NML);
         try {
-            temp.write(wrapInt(byt.length));
+            if (byt.length <= Short.MAX_VALUE) {
+                temp.write(ArbreProcessor.MNL);
+                temp.write(wrapShort((short) byt.length));
+            } else {
+                temp.write(ArbreProcessor.NML);
+                temp.write(wrapInt(byt.length));
+            }
             temp.write(byt);
         } catch (IOException e) {
             e.printStackTrace();
@@ -150,13 +185,22 @@ public class Bits {
         return temp.toByteArray();
     }
 
+    public static String getNonEmptyString(ByteBuffer buffer) {
+        int lenType = buffer.get();
+        byte[] data = null;
+        if (lenType == ArbreProcessor.NML) {
+            data = new byte[buffer.getInt()];
+        } else if (lenType == ArbreProcessor.MNL) {
+            data = new byte[buffer.getShort()];
+        } else throw new UnsupportedOperationException("Unchecked length value : " + lenType);
+        buffer.get(data);
+        return new String(data, StandardCharsets.UTF_8);
+    }
+
     public static String getEffectiveString(ByteBuffer buffer) {
-        if (buffer.get() == ArbreProcessor.HVV) {
-            buffer.get(); // skip NML label (as default)
-            byte[] data = new byte[buffer.getInt()];
-            buffer.get(data);
-            return new String(data, StandardCharsets.UTF_8);
-        } else return null;
+        if (buffer.get() == ArbreProcessor.HVV)
+            return getNonEmptyString(buffer);
+        else return null;
     }
 
 }

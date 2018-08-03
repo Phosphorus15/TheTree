@@ -9,7 +9,7 @@ public abstract class EditableNode extends TreeNode {
     @Override
     public abstract List<EditableNode> subNodes();
 
-    abstract void setName(String name);
+    public abstract void setName(String name);
 
     public abstract void setValue(Object object);
 

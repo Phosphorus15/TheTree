@@ -2,6 +2,8 @@ package net.steepout.ttree.parser.l_arbre;
 
 import net.steepout.ttree.TreeRoot;
 
+import java.util.Date;
+
 public class LARAttributiveRoot extends TreeRoot {
 
     public LARAttributiveRoot(String caption) {
@@ -28,4 +30,10 @@ public class LARAttributiveRoot extends TreeRoot {
 
     int createdVersion;
 
+    public String toArrtibutiveString() {
+        Date date = new Date(timeStamp);
+        return "\"LAR Archive Root\" : {\"timeStamp\": \"" +
+                date.toString() + "\", \"version\": " +
+                createdVersion + "}\n" + super.toString();
+    }
 }

@@ -1,15 +1,16 @@
 package net.steepout.ttree.parser.l_arbre;
 
-import net.steepout.ttree.NodeType;
-import net.steepout.ttree.TreeManager;
-import net.steepout.ttree.TreeNode;
-import net.steepout.ttree.TreeRoot;
+import net.steepout.ttree.*;
+import net.steepout.ttree.data.ListNode;
 import net.steepout.ttree.parser.TreeProcessor;
 import net.steepout.ttree.utils.Bits;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.zip.GZIPInputStream;
@@ -34,6 +35,7 @@ public class ArbreProcessor extends TreeProcessor {
     static final int EFV = 0x5; // Effective value
     static final int OPH = 0x6; // Optional Hash (Md5)
     static final int EOF = 0x7; // End of file
+    public static final int MNL = 0xd; // Minimal length value (int16)
     public static final int NML = 0x8; // Normal length value (int32)
     public static final int EXL = 0x9; // Extra length value (int64)
     static final int SOL = 0xa; // Start of List
@@ -71,7 +73,7 @@ public class ArbreProcessor extends TreeProcessor {
     }
 
     @Override
-    public TreeRoot parse(InputStream stream) throws IOException {
+    public LARAttributiveRoot parse(InputStream stream) throws IOException {
         if (compress) return parseUncompressed(new GZIPInputStream(stream));
         else return parseUncompressed(stream);
     }
@@ -82,6 +84,7 @@ public class ArbreProcessor extends TreeProcessor {
         while ((i = stream.read()) != -1)
             cache.write(i);
         ByteBuffer buffer = ByteBuffer.wrap(cache.toByteArray());
+        buffer.order(ByteOrder.BIG_ENDIAN);
         cache.close();
         if (buffer.limit() <= 8 || buffer.getInt() != MAGIC_NUMBER)
             raiseInvalid();
@@ -97,19 +100,80 @@ public class ArbreProcessor extends TreeProcessor {
         if (buffer.get() != SOF) raiseInvalid();
         if (buffer.get() != SOS) return null;
         root.setName(Bits.getEffectiveString(buffer));
-        parseNodes(root, buffer);
+        try {
+            parseNodes(root, buffer, false);
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
         if (buffer.get() != EOS) raiseInvalid();
         if (buffer.get() != EOF) raiseInvalid();
         return root;
     }
 
-    private void parseNodes(TreeNode father, ByteBuffer buffer) {
-        while (buffer.get(buffer.position()) != EOS) {
+    private void parseNodes(EditableNode father, ByteBuffer buffer, boolean forceList) throws InvalidObjectException, IllegalAccessException, InstantiationException, InvocationTargetException {
+        while (buffer.get(buffer.position()) != EOS && buffer.get(buffer.position()) != EOL) {
             byte code = buffer.get();
+            String name = Bits.getEffectiveString(buffer);
             if (code == MKD) {
-
-            } else if (code == SOL) {
-
+                NodeType typeEnum = NodeType.values()[buffer.get()];
+                if (!typeEnum.isDataType()) raiseInvalid();
+                EditableNode node = TreeManager.emptyNodeByClass(typeEnum.getDefaultInstance());
+                if (!forceList) node.setName(name);
+                byte status = buffer.get();
+                if (status == NOV) {
+                    node.setValue(null);
+                } else if (status == HVV) {
+                    switch (typeEnum) {
+                        case TYPE_BYTE:
+                            node.setValue(buffer.get());
+                            break;
+                        case TYPE_INT16:
+                            node.setValue(buffer.getShort());
+                            break;
+                        case TYPE_INT32:
+                            node.setValue(buffer.getInt());
+                            break;
+                        case TYPE_INT64:
+                            node.setValue(buffer.getLong());
+                            break;
+                        case TYPE_FLOAT:
+                            node.setValue(buffer.getFloat());
+                            break;
+                        case TYPE_DOUBLE_FLOAT:
+                            node.setValue(buffer.getDouble());
+                            break;
+                        case TYPE_STRING:
+                        case TYPE_ANNOTATIONS:
+                        case TYPE_IDENTIFIER:
+                        case TYPE_BIG_DECIMAL:
+                            String rawValue = Bits.getEffectiveString(buffer);
+                            if (typeEnum != NodeType.TYPE_BIG_DECIMAL) {
+                                node.setValue(rawValue);
+                            } else {
+                                node.setValue(new BigDecimal(rawValue));
+                            }
+                            break;
+                        case TYPE_BIG_INTEGER:
+                        case TYPE_BLOB:
+                            byte[] rawData = Bits.getNonEmptyBlob(buffer);
+                            if (typeEnum != NodeType.TYPE_BIG_INTEGER) {
+                                node.setValue(rawData);
+                            } else {
+                                node.setValue(new BigInteger(rawData));
+                            }
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Unidentified data object " + node.getClass().getName());
+                    }
+                } else raiseInvalid();
+                father.subNodes().add(node);
+            } else if (code == SOL || code == SOS) {
+                TreeRoot listRoot = (code == SOL) ? new ListNode() : new TreeRoot();
+                if (!forceList)
+                    listRoot.setName(name);
+                parseNodes(listRoot, buffer, code == SOL);
+                if ((code == SOL && buffer.get() != EOL) || (code == SOS && buffer.get() != EOS)) raiseInvalid();
+                father.subNodes().add(listRoot);
             }
         }
     }
@@ -176,13 +240,14 @@ public class ArbreProcessor extends TreeProcessor {
             stream.write(EOS);
         } else if (node.getType().isDataType()) {
             stream.write(MKD);
-            stream.write(node.getType().ordinal());
             if (forceList)
                 stream.write(NOV);
             else
                 stream.write(Bits.wrapString(node.getName()));
+            stream.write(node.getType().ordinal());
             if (node.getValue() == null) stream.write(NOV);
-            else
+            else {
+                stream.write(HVV);
                 switch (node.getType()) {
                     case TYPE_BYTE:
                         stream.write(node.asByte());
@@ -209,14 +274,15 @@ public class ArbreProcessor extends TreeProcessor {
                         stream.write(Bits.wrapString(node.getValue().toString()));
                         break;
                     case TYPE_BIG_INTEGER:
-                        stream.write(Bits.wrapBlob(((BigInteger) node.getValue()).toByteArray()));
+                        stream.write(Bits.wrapNonEmptyBlob(((BigInteger) node.getValue()).toByteArray()));
                         break;
                     case TYPE_BLOB:
-                        stream.write(Bits.wrapBlob((byte[]) node.getValue()));
+                        stream.write(Bits.wrapNonEmptyBlob((byte[]) node.getValue()));
                         break;
                     default:
                         throw new IllegalArgumentException("Unidentified data object " + node.getClass().getName());
                 }
+            }
         } else if (node.getType() == NodeType.TYPE_DATA_LIST) {
             stream.write(SOL);
             if (forceList)
