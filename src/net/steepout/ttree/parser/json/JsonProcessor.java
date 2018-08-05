@@ -3,15 +3,19 @@ package net.steepout.ttree.parser.json;
 import net.steepout.ttree.EditableNode;
 import net.steepout.ttree.TreeManager;
 import net.steepout.ttree.TreeRoot;
+import net.steepout.ttree.data.BlobNode;
+import net.steepout.ttree.data.ListNode;
+import net.steepout.ttree.data.StringNode;
 import net.steepout.ttree.parser.TreeProcessor;
 import net.steepout.ttree.utils.ParserUtils;
 
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 /**
- * A typical JSON parser & serializer
+ * A typical JSON parser & serializer (with no annotations' or identifiers' support)
  * <p>
  * it acts as any other json utils do, as you could see, any value would be parsed into DataNode or its subclass
  * <p>
@@ -44,37 +48,68 @@ public class JsonProcessor extends TreeProcessor {
         JsonRootNode root = new JsonRootNode();
         int ch = ParserUtils.readUntilValid(reader);
         if (ch != '{') raiseInvalid();
-        parseJson(root, reader);
+        parseJson(root, reader, false);
         return root;
     }
 
-    public void parseJson(EditableNode node, Reader reader) throws IOException {
-        String key = "";
-        String raw = "";
-        boolean fullFilled = false;
+    public void parseJson(EditableNode node, Reader reader, boolean listMode) throws IOException {
+        //System.out.println(node);
+        String key = (listMode) ? null : "";
+        String raw;
+        boolean fullFilled = listMode, paired = false;
         while (true) {
+            fullFilled |= listMode;
             int ch = ParserUtils.readUntilValid(reader);
-            if (!key.isEmpty()) {
+            if (ch == '}' && !listMode) break;
+            if (ch == ']' && listMode) break;
+            if (fullFilled && paired) {
+                if (ch == ',') {
+                    fullFilled = paired = false;
+                    key = (listMode) ? null : "";
+                    continue;
+                } else raiseInvalid("unexpected symbol " + ((char) ch));
+            }
+            if (key == null || !key.isEmpty()) {
                 if (ch == ':') {
                     fullFilled = true;
                 } else if (fullFilled) {
-                    ch = ParserUtils.readUntilValid(reader);
                     if (ch == '{') {
                         TreeRoot root = new TreeRoot(key);
                         node.subNodes().add(root);
-                        parseJson(root, reader);
+                        parseJson(root, reader, false);
                     } else if (ch == '[') {
-
+                        ListNode list = new ListNode(key);
+                        node.subNodes().add(list);
+                        parseJson(list, reader, true);
                     } else if (ch == '\'' || ch == '"') {
-
+                        raw = ParserUtils.readEffectiveString(reader, ch);
+                        EditableNode n;
+                        if (raw.length() >= 5 && raw.startsWith("Blob-")) {
+                            raw = raw.substring(5);
+                            n = new BlobNode(key, Base64.getDecoder().decode(raw));
+                        } else {
+                            n = new StringNode(key, raw);
+                        }
+                        node.subNodes().add(n);
                     } else {
-                        raw = ch + ParserUtils.readUntilEliminate(reader); // mark reset
+                        //  System.out.println("redundant : " + ((char) ch));
+                        raw = ((char) ch) + ParserUtils.readUntilEliminate(reader); // mark reset
+                        // System.out.println(raw);
+                        EditableNode n = ParserUtils.resolveRawType(key, raw);
+                        if (n == null) raiseInvalid("unidentified object type : " + raw);
+                        node.subNodes().add(n);
                     }
+                    paired = true;
                 } else raiseInvalid();
             } else if (ch == '\'' || ch == '"') {
+                //System.out.println("id read");
                 key = ParserUtils.readEffectiveString(reader, ch);
-                fullFilled = true;
+                //System.out.println(key);
             } else raiseInvalid();
         }
+    }
+
+    public void parseList(ListNode node, Reader reader) {
+
     }
 }

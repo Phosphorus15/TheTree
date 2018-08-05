@@ -34,7 +34,7 @@ public abstract class DataNode<T> extends TreeRoot {
     }
 
     public String showValue() {
-        return value.toString();
+        return (value == null) ? "null" : value.toString();
     }
 
     @Override
