@@ -1,6 +1,6 @@
 A generic solution for plenty of markup language
 ----
-#####Supported Languages:
+##### Supported Languages:
  - [x] Json (parser / serializer)
  - [ ] Xml/Html (parser / serializer)
  - [ ] Yaml (parser / serializer)
@@ -16,7 +16,7 @@ Currently, it is compatible with data types including :
  - generic list (without type restriction)
  - imitative map (not yes finished)
  
-#####What's arbre:
+##### What's arbre:
  arbre is a systematic way of storing a tree structure, originated form French "L'arbre" (means "The tree").
  
  arbre would be stored in a binary file type named ".lar", or get embedded in a Blob stream. commonly it would be 
