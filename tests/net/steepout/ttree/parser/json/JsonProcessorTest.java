@@ -22,6 +22,7 @@ class JsonProcessorTest {
     @BeforeAll
     public static void setUp() throws ClassNotFoundException {
         Class.forName("net.steepout.ttree.parser.json.JsonProcessor");
+        Class.forName("net.steepout.ttree.parser.l_arbre.ArbreProcessor");
     }
 
     @Test
@@ -38,6 +39,7 @@ class JsonProcessorTest {
         assertNotNull(parser);
         JsonRootNode node = (JsonRootNode) parser.parse(new ByteArrayInputStream(matrixJson.getBytes()));
         assertEquals(147, node.toString().length());
+        System.out.println(TreeManager.defaultSerializer().serialize(node).limit());
     }
 
 }
