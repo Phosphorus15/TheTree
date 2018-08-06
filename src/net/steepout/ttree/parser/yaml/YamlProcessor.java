@@ -57,8 +57,11 @@ public class YamlProcessor extends TreeProcessor {
                 if (listMode) raiseInvalid("unexpected type " + n.getType() + " in " + node.getType());
                 builder.append(tabs.toString()).append(safeName(n.getName())).append(":\n");
                 builder.append(toYaml(n, level + 1, false));
-            } else if (n.getType().isDataType()) { // TODO comments' support
-                if (listMode)
+            } else if (n.getType().isDataType()) {
+                if (n.getType() == NodeType.TYPE_ANNOTATIONS) {
+                    String comment = n.getValue() == null ? "null" : n.getValue().toString();
+                    builder.append(tabs.toString()).append("# ").append(comment).append('\n');
+                } else if (listMode)
                     builder.append(tabs.toString()).append("- ").append(((DataNode) n).showValue()).append("\n");
                 else
                     builder.append(tabs.toString()).append(safeName(n.getName())).append(" : ").append(((DataNode) n).showValue()).append("\n");

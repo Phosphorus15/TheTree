@@ -2,6 +2,7 @@ package net.steepout.ttree.parser.yaml;
 
 import net.steepout.ttree.TreeManager;
 import net.steepout.ttree.TreeRoot;
+import net.steepout.ttree.data.AnnotationsNode;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -29,6 +30,8 @@ class YamlProcessorTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        root.subNodes().add(new AnnotationsNode("Test annotation"));
+        root.subNodes().get(3).subNodes().get(0).subNodes().add(new AnnotationsNode("Embedded"));
     }
 
     @Test
