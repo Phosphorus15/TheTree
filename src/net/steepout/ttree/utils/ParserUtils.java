@@ -1,6 +1,8 @@
 package net.steepout.ttree.utils;
 
+import net.steepout.ttree.DataNode;
 import net.steepout.ttree.EditableNode;
+import net.steepout.ttree.NodeType;
 import net.steepout.ttree.data.*;
 
 import java.io.IOException;
@@ -114,6 +116,19 @@ public class ParserUtils {
             }
         }
         return n;
+    }
+
+    /**
+     * force quoting for xml support
+     *
+     * @param node the node to be processed
+     * @return the value after quoted
+     */
+    public static String forceQuotedValue(DataNode<?> node) {
+        if (node.getType() == NodeType.TYPE_STRING)
+            return node.showValue();
+        else
+            return BeautifiedPrinter.quotedString(node.showValue());
     }
 
 }

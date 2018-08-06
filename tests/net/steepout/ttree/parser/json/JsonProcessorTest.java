@@ -14,7 +14,7 @@ class JsonProcessorTest {
 
     static final String jsonString =
             "{'id' : 233,'floating': 1.7, 'string': \"might be a \\nstring\"" +
-                    ", 'tree': {\"deeper ~\": {},'list' : [2,3,5,7,'233'],'value' : 23333333333333333}" +
+                    ", 'tree': {\"deeper\": {},'list' : [2,3,5,7,'233'],'value' : 23333333333333333}" +
                     "}";
 
     static final String matrixJson = "{'matrix':[[{'id' : 1},{'id' : 2},{}],[{},{\"value\" : 2.7},{}],[{},{},{}]]}";
