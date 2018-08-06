@@ -91,4 +91,9 @@ public class XMLProcessor extends TreeProcessor {
     public TreeRoot parse(InputStream stream) {
         return null;
     }
+
+    @Override
+    public boolean isFullyCompatible() {
+        return false;
+    }
 }

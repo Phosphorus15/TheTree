@@ -2,9 +2,10 @@ A generic solution for plenty of markup language
 ----
 ##### Supported Languages:
  - [x] Json (parser / serializer)
- - [ ] Xml/Html (parser / serializer)
- - [ ] Yaml (parser / serializer)
+ - [x] Xml/Html (serializer)
+ - [x] Yaml (serializer)
  - [x] Arbre (parser / serializer)
+ - [ ] Xml, Yaml parser support
  
 Extensibility are expected due to the hierarchical tree of node type, which is with high flexibility
  

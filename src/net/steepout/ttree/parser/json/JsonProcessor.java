@@ -52,6 +52,11 @@ public class JsonProcessor extends TreeProcessor {
         return root;
     }
 
+    @Override
+    public boolean isFullyCompatible() {
+        return true;
+    }
+
     public void parseJson(EditableNode node, Reader reader, boolean listMode) throws IOException {
         //System.out.println(node);
         String key = (listMode) ? null : "";

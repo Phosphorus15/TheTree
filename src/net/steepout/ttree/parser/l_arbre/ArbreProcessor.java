@@ -78,6 +78,11 @@ public class ArbreProcessor extends TreeProcessor {
         else return parseUncompressed(stream);
     }
 
+    @Override
+    public boolean isFullyCompatible() {
+        return true;
+    }
+
     public LARAttributiveRootNode parseUncompressed(InputStream stream) throws IOException {
         ByteArrayOutputStream cache = new ByteArrayOutputStream();
         int i = 0;

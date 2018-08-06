@@ -13,4 +13,12 @@ public interface TreeParser {
 
     TreeRoot parse(InputStream stream) throws IOException;
 
+    /**
+     * To determine, if ever this parser/serializer set can fully supports the conversion from other tree source.
+     * and can also be converted back without losing information.
+     *
+     * @return if the parser/serializer is fully compatible
+     */
+    boolean isFullyCompatible();
+
 }
